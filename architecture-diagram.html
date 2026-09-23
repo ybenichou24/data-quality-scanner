@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Quality Scanner — Architecture Diagram</title>
+  <style>
+    body {
+      font-family: "Salesforce Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f8f9fa;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .diagram {
+      max-width: 960px;
+      width: 100%;
+    }
+    h1 {
+      text-align: center;
+      color: #1a1a1a;
+      font-size: 1.6rem;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 40px;
+    }
+    svg {
+      width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram">
+    <h1>Data Quality Scanner — Workspace Extension</h1>
+    <p class="subtitle">Architecture, data flow, and component overview</p>
+
+    <svg viewBox="0 0 920 980" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#0066cc"/>
+        </marker>
+        <marker id="arrow-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#1e8449"/>
+        </marker>
+        <marker id="arrow-gray" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#666"/>
+        </marker>
+        <marker id="arrow-orange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#e67e22"/>
+        </marker>
+        <filter id="shadow" x="-4%" y="-4%" width="108%" height="108%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/>
+        </filter>
+      </defs>
+
+      <!-- ============================================================ -->
+      <!-- SECTION 1: TABLEAU DESKTOP (top)                             -->
+      <!-- ============================================================ -->
+
+      <!-- Tableau Desktop container -->
+      <rect x="30" y="10" width="860" height="130" rx="10" fill="#ffffff" stroke="#1e8449" stroke-width="2" filter="url(#shadow)"/>
+      <rect x="30" y="10" width="860" height="32" rx="10" fill="#1e8449"/>
+      <rect x="30" y="34" width="860" height="2" fill="#1e8449"/>
+      <text x="460" y="31" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">TABLEAU DESKTOP</text>
+
+      <!-- Workbook -->
+      <rect x="60" y="55" width="160" height="65" rx="6" fill="#e8f8f0" stroke="#27ae60" stroke-width="1.5"/>
+      <text x="140" y="75" text-anchor="middle" fill="#1e8449" font-size="10" font-weight="700">Workbook</text>
+      <text x="140" y="92" text-anchor="middle" fill="#555" font-size="9">Worksheets</text>
+      <text x="140" y="106" text-anchor="middle" fill="#555" font-size="9">Datasources (CSV, DB, Extract)</text>
+
+      <!-- Published Datasource -->
+      <rect x="250" y="55" width="160" height="65" rx="6" fill="#e8f8f0" stroke="#27ae60" stroke-width="1.5"/>
+      <text x="330" y="75" text-anchor="middle" fill="#1e8449" font-size="10" font-weight="700">Published Datasource</text>
+      <text x="330" y="92" text-anchor="middle" fill="#555" font-size="9">Logical Tables</text>
+      <text x="330" y="106" text-anchor="middle" fill="#555" font-size="9">Fields + Metadata</text>
+
+      <!-- Toolbar Button -->
+      <rect x="460" y="55" width="180" height="65" rx="6" fill="#fef9e7" stroke="#f39c12" stroke-width="1.5"/>
+      <text x="550" y="75" text-anchor="middle" fill="#7d6608" font-size="10" font-weight="700">Toolbar Button</text>
+      <text x="550" y="92" text-anchor="middle" fill="#7d6608" font-size="9">Data Quality Scanner</text>
+      <text x="550" y="106" text-anchor="middle" fill="#7d6608" font-size="9">Click to open extension</text>
+
+      <!-- Extensions API bridge -->
+      <rect x="680" y="55" width="180" height="65" rx="6" fill="#e8f4fd" stroke="#0066cc" stroke-width="1.5"/>
+      <text x="770" y="75" text-anchor="middle" fill="#0066cc" font-size="10" font-weight="700">Extensions API</text>
+      <text x="770" y="92" text-anchor="middle" fill="#555" font-size="9">postMessage bridge</text>
+      <text x="770" y="106" text-anchor="middle" fill="#555" font-size="9">Isolated iframe origin</text>
+
+      <!-- Arrow: Toolbar → Extension -->
+      <line x1="550" y1="120" x2="550" y2="165" stroke="#e67e22" stroke-width="2" marker-end="url(#arrow-orange)"/>
+      <text x="558" y="148" fill="#e67e22" font-size="8" font-style="italic">click</text>
+
+      <!-- Arrow: Datasource → Extensions API -->
+      <line x1="410" y1="87" x2="678" y2="87" stroke="#0066cc" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#arrow)"/>
+      <text x="540" y="82" fill="#0066cc" font-size="7.5" font-style="italic">getLogicalTableDataReaderAsync()</text>
+
+      <!-- ============================================================ -->
+      <!-- SECTION 2: EXTENSION PANEL (Screen 1 + Screen 2)            -->
+      <!-- ============================================================ -->
+
+      <!-- Extension iframe container -->
+      <rect x="30" y="170" width="860" height="200" rx="10" fill="#ffffff" stroke="#0066cc" stroke-width="2" filter="url(#shadow)"/>
+      <rect x="30" y="170" width="860" height="32" rx="10" fill="#0066cc"/>
+      <rect x="30" y="194" width="860" height="2" fill="#0066cc"/>
+      <text x="460" y="191" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">WORKSPACE EXTENSION (iframe at localhost:8780)</text>
+
+      <!-- Screen 1: Scan -->
+      <rect x="55" y="215" width="380" height="135" rx="8" fill="#f9f9f9" stroke="#ccc" stroke-width="1"/>
+      <text x="245" y="237" text-anchor="middle" fill="#333" font-size="11" font-weight="700">Screen 1: Select &amp; Scan</text>
+      <text x="245" y="258" text-anchor="middle" fill="#666" font-size="9">Datasource dropdown (auto-discovered)</text>
+      <text x="245" y="275" text-anchor="middle" fill="#666" font-size="9">8 check toggles (all ON by default)</text>
+      <rect x="165" y="290" width="160" height="28" rx="14" fill="#4e79a7"/>
+      <text x="245" y="309" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">Start Scan</text>
+      <text x="245" y="340" text-anchor="middle" fill="#999" font-size="8">Checks: Completeness | Duplicates | Type | Outliers</text>
+      <text x="245" y="352" text-anchor="middle" fill="#999" font-size="8">Value Consistency | Pattern | Negatives | Unique Key</text>
+
+      <!-- Arrow Screen 1 → Screen 2 -->
+      <line x1="435" y1="282" x2="478" y2="282" stroke="#0066cc" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="456" y="276" fill="#0066cc" font-size="8" font-style="italic">async</text>
+
+      <!-- Screen 2: Results -->
+      <rect x="485" y="215" width="380" height="135" rx="8" fill="#f9f9f9" stroke="#ccc" stroke-width="1"/>
+      <text x="675" y="237" text-anchor="middle" fill="#333" font-size="11" font-weight="700">Screen 2: Results</text>
+      <text x="675" y="258" text-anchor="middle" fill="#666" font-size="9">Score bar (5/8 passed = 62%)</text>
+      <text x="675" y="275" text-anchor="middle" fill="#666" font-size="9">Expandable check cards (fail/pass)</text>
+      <text x="675" y="292" text-anchor="middle" fill="#666" font-size="9">Failing records table per check</text>
+      <rect x="595" y="310" width="160" height="28" rx="14" fill="#6c757d"/>
+      <text x="675" y="329" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">Download Run Log</text>
+
+      <!-- ============================================================ -->
+      <!-- SECTION 3: THREE-LAYER ARCHITECTURE                         -->
+      <!-- ============================================================ -->
+
+      <!-- Arrow down -->
+      <line x1="460" y1="370" x2="460" y2="410" stroke="#0066cc" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="468" y="396" fill="#666" font-size="8" font-style="italic">powers</text>
+
+      <!-- Architecture container -->
+      <rect x="30" y="415" width="860" height="280" rx="10" fill="#fafafa" stroke="#999" stroke-width="1" stroke-dasharray="6" filter="url(#shadow)"/>
+      <text x="460" y="440" text-anchor="middle" fill="#333" font-size="13" font-weight="700">THREE-LAYER ARCHITECTURE (src/)</text>
+
+      <!-- Layer 1: React UI -->
+      <rect x="55" y="455" width="250" height="110" rx="8" fill="#ffffff" stroke="#e67e22" stroke-width="2" filter="url(#shadow)"/>
+      <rect x="55" y="455" width="250" height="26" rx="8" fill="#e67e22"/>
+      <rect x="55" y="475" width="250" height="2" fill="#e67e22"/>
+      <text x="180" y="473" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">components/</text>
+      <text x="180" y="497" text-anchor="middle" fill="#333" font-size="10" font-weight="600">React UI Layer</text>
+      <text x="180" y="515" text-anchor="middle" fill="#666" font-size="8.5">ScanScreen.tsx</text>
+      <text x="180" y="529" text-anchor="middle" fill="#666" font-size="8.5">ResultsScreen.tsx</text>
+      <text x="180" y="543" text-anchor="middle" fill="#666" font-size="8.5">CheckCard.tsx | RecordsTable.tsx</text>
+      <text x="180" y="557" text-anchor="middle" fill="#999" font-size="7.5">Renders UI, handles user interaction</text>
+
+      <!-- Layer 2: Tableau Glue -->
+      <rect x="335" y="455" width="250" height="110" rx="8" fill="#ffffff" stroke="#0066cc" stroke-width="2" filter="url(#shadow)"/>
+      <rect x="335" y="455" width="250" height="26" rx="8" fill="#0066cc"/>
+      <rect x="335" y="475" width="250" height="2" fill="#0066cc"/>
+      <text x="460" y="473" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">tableau/</text>
+      <text x="460" y="497" text-anchor="middle" fill="#333" font-size="10" font-weight="600">Tableau Glue Layer</text>
+      <text x="460" y="515" text-anchor="middle" fill="#666" font-size="8.5">extensions.ts — init + preview mode</text>
+      <text x="460" y="529" text-anchor="middle" fill="#666" font-size="8.5">datasource.ts — discover + load data</text>
+      <text x="460" y="543" text-anchor="middle" fill="#999" font-size="7.5">Only layer touching window.tableau</text>
+      <text x="460" y="557" text-anchor="middle" fill="#999" font-size="7.5">Falls back to sample data if no host</text>
+
+      <!-- Layer 3: Pure Engine -->
+      <rect x="615" y="455" width="250" height="110" rx="8" fill="#ffffff" stroke="#8e44ad" stroke-width="2" filter="url(#shadow)"/>
+      <rect x="615" y="455" width="250" height="26" rx="8" fill="#8e44ad"/>
+      <rect x="615" y="475" width="250" height="2" fill="#8e44ad"/>
+      <text x="740" y="473" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">engine/</text>
+      <text x="740" y="497" text-anchor="middle" fill="#333" font-size="10" font-weight="600">Pure Check Engine</text>
+      <text x="740" y="515" text-anchor="middle" fill="#666" font-size="8.5">8 checks (Deequ-inspired)</text>
+      <text x="740" y="529" text-anchor="middle" fill="#666" font-size="8.5">levenshtein.ts | runLog.ts</text>
+      <text x="740" y="543" text-anchor="middle" fill="#666" font-size="8.5">types.ts | checks.ts (registry)</text>
+      <text x="740" y="557" text-anchor="middle" fill="#999" font-size="7.5">Zero Tableau dependency — fully testable</text>
+
+      <!-- Arrows between layers -->
+      <line x1="305" y1="510" x2="333" y2="510" stroke="#666" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+      <line x1="585" y1="510" x2="613" y2="510" stroke="#666" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+      <!-- Preview mode label -->
+      <rect x="55" y="580" width="530" height="30" rx="6" fill="#fef3e2" stroke="#f39c12" stroke-width="1"/>
+      <text x="320" y="600" text-anchor="middle" fill="#7d6608" font-size="9" font-weight="600">Preview Mode: No Tableau needed — sample data with planted issues runs in any browser at localhost:8780</text>
+
+      <!-- ============================================================ -->
+      <!-- SECTION 4: CHECK EXECUTION FLOW                             -->
+      <!-- ============================================================ -->
+
+      <!-- Arrow down -->
+      <line x1="460" y1="700" x2="460" y2="730" stroke="#8e44ad" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <!-- Async execution -->
+      <rect x="30" y="735" width="860" height="230" rx="10" fill="#ffffff" stroke="#8e44ad" stroke-width="2" filter="url(#shadow)"/>
+      <rect x="30" y="735" width="860" height="32" rx="10" fill="#8e44ad"/>
+      <rect x="30" y="759" width="860" height="2" fill="#8e44ad"/>
+      <text x="460" y="756" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">ASYNC CHECK EXECUTION (Promise.all — results render incrementally)</text>
+
+      <!-- Check boxes row 1 -->
+      <rect x="55"  y="780" width="185" height="50" rx="6" fill="#fce4ec" stroke="#ef5350" stroke-width="1.5"/>
+      <text x="147" y="800" text-anchor="middle" fill="#c62828" font-size="9" font-weight="700">Completeness</text>
+      <text x="147" y="816" text-anchor="middle" fill="#666" font-size="7.5">All columns: null/empty scan</text>
+
+      <rect x="255" y="780" width="185" height="50" rx="6" fill="#e8f5e9" stroke="#4caf50" stroke-width="1.5"/>
+      <text x="347" y="800" text-anchor="middle" fill="#2e7d32" font-size="9" font-weight="700">Duplicates</text>
+      <text x="347" y="816" text-anchor="middle" fill="#666" font-size="7.5">Row-level: JSON key dedup</text>
+
+      <rect x="455" y="780" width="185" height="50" rx="6" fill="#fce4ec" stroke="#ef5350" stroke-width="1.5"/>
+      <text x="547" y="800" text-anchor="middle" fill="#c62828" font-size="9" font-weight="700">Type Consistency</text>
+      <text x="547" y="816" text-anchor="middle" fill="#666" font-size="7.5">Per column: infer + compare types</text>
+
+      <rect x="655" y="780" width="210" height="50" rx="6" fill="#e8f5e9" stroke="#4caf50" stroke-width="1.5"/>
+      <text x="760" y="800" text-anchor="middle" fill="#2e7d32" font-size="9" font-weight="700">Outliers</text>
+      <text x="760" y="816" text-anchor="middle" fill="#666" font-size="7.5">Numeric: IQR method (Q1-1.5*IQR)</text>
+
+      <!-- Check boxes row 2 -->
+      <rect x="55"  y="845" width="185" height="50" rx="6" fill="#fce4ec" stroke="#ef5350" stroke-width="1.5"/>
+      <text x="147" y="865" text-anchor="middle" fill="#c62828" font-size="9" font-weight="700">Value Consistency</text>
+      <text x="147" y="881" text-anchor="middle" fill="#666" font-size="7.5">Categorical: Levenshtein typos</text>
+
+      <rect x="255" y="845" width="185" height="50" rx="6" fill="#e8f5e9" stroke="#4caf50" stroke-width="1.5"/>
+      <text x="347" y="865" text-anchor="middle" fill="#2e7d32" font-size="9" font-weight="700">Pattern Conformity</text>
+      <text x="347" y="881" text-anchor="middle" fill="#666" font-size="7.5">String: regex dominant pattern</text>
+
+      <rect x="455" y="845" width="185" height="50" rx="6" fill="#e8f5e9" stroke="#4caf50" stroke-width="1.5"/>
+      <text x="547" y="865" text-anchor="middle" fill="#2e7d32" font-size="9" font-weight="700">Negative Values</text>
+      <text x="547" y="881" text-anchor="middle" fill="#666" font-size="7.5">Numeric: flag negs in non-neg cols</text>
+
+      <rect x="655" y="845" width="210" height="50" rx="6" fill="#e8f5e9" stroke="#4caf50" stroke-width="1.5"/>
+      <text x="760" y="865" text-anchor="middle" fill="#2e7d32" font-size="9" font-weight="700">Unique Key</text>
+      <text x="760" y="881" text-anchor="middle" fill="#666" font-size="7.5">ID cols: auto-detect + verify</text>
+
+      <!-- Output arrows -->
+      <line x1="460" y1="910" x2="460" y2="935" stroke="#666" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+      <!-- Output: CSV Run Log -->
+      <rect x="300" y="938" width="320" height="35" rx="18" fill="#1a1a2e" filter="url(#shadow)"/>
+      <text x="460" y="956" text-anchor="middle" fill="#eaeaea" font-size="10" font-weight="600">CSV Run Log (timestamped, one row per failing record)</text>
+
+      <!-- Legend in bottom-left -->
+      <rect x="55" y="920" width="12" height="12" rx="2" fill="#fce4ec" stroke="#ef5350" stroke-width="1"/>
+      <text x="73" y="931" fill="#666" font-size="8">= FAIL (demo pre-test)</text>
+      <rect x="55" y="938" width="12" height="12" rx="2" fill="#e8f5e9" stroke="#4caf50" stroke-width="1"/>
+      <text x="73" y="949" fill="#666" font-size="8">= PASS (demo pre-test)</text>
+
+    </svg>
+  </div>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest manifest-version="0.1"
+          xmlns="http://www.tableau.com/xml/extension_manifest">
+  <workspace-extension id="com.dqs.extensions.data-quality-scanner"
+                       extension-version="0.1.0">
+    <default-locale>en_US</default-locale>
+    <name resource-id="name"/>
+    <description>Scan datasources for quality issues: completeness,
+      duplicates, type consistency, outliers, value consistency,
+      pattern conformity, negative values, and unique key validation.</description>
+    <author name="DQS" email="dqs@example.com" organization="DQS"
+            website="https://example.com"/>
+    <min-api-version>1.11</min-api-version>
+    <source-location>
+      <url>http://localhost:8780</url>
+    </source-location>
+    <icon></icon>
+    <permissions>
+      <permission>full data</permission>
+    </permissions>
+  </workspace-extension>
+  <resources>
+    <resource id="name">
+      <text locale="en_US">Data Quality Scanner</text>
+    </resource>
+  </resources>
+</manifest>

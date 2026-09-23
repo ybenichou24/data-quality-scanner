@@ -1,0 +1,172 @@
+DATA QUALITY SCANNER — DEMO SCRIPT
+====================================
+
+OPENING (30 seconds)
+--------------------
+"What if Tableau had the same extensibility that makes Cursor so powerful?
+
+Cursor isn't just a text editor — it's a platform. Developers install extensions
+that lint their code, catch bugs before they ship, and automate tedious tasks.
+The editor does the basics; the ecosystem does everything else.
+
+Tableau workspace extensions bring that same model to analytics."
+
+
+THE ANALOGY: CURSOR EXTENSIONS vs TABLEAU WORKSPACE EXTENSIONS
+--------------------------------------------------------------
+
+Think of Tableau Desktop as the IDE. It handles authoring, visualization,
+and data connection. But just like VS Code or Cursor without extensions,
+it can only do what the core team shipped.
+
+  Cursor / VS Code                    Tableau Desktop
+  ─────────────────                   ─────────────────
+  Editor + terminal                   Viz authoring + data connection
+  Extensions panel (sidebar)          Workspace toolbar (extension button)
+  Extensions persist across files     Extensions persist across workbooks
+  ESLint catches code issues          DQS catches data issues
+  Runs in an iframe/webview           Runs in an iframe (isolated origin)
+  package.json + marketplace          .trex manifest + .tpkg package
+  Read/write via Language Server      Read/write via Extensions API
+  Settings sync across machines       Settings sync via Tableau Server
+
+A Cursor extension like ESLint doesn't change your code for you —
+it scans it, flags problems, and shows you exactly where they are.
+
+That's what Data Quality Scanner does for your data.
+
+
+DEMO FLOW (3-4 minutes)
+------------------------
+
+STEP 1: THE PROBLEM (30 seconds)
+"Here's a dataset — 10,000 survey responses from parents about their
+local schools. Ratings, comments, demographics.
+
+In Tableau Desktop, I can build charts immediately. Everything looks fine.
+But is the data actually clean? Are there nulls hiding in the margins?
+Typos in the school names? Strings where numbers should be?
+
+Most people skip this step. They publish, and a week later someone asks
+'why does this chart say Lincolm Elementary?'"
+
+  → Show the survey_pre_test.csv connected in Tableau
+  → Quick bar chart of school_name — "Lincolm Elementary" is visible
+    as a tiny separate bar if you look carefully, but easy to miss
+
+
+STEP 2: ONE CLICK SCAN (30 seconds)
+"Instead of hunting through 10,000 rows manually, I click the
+Data Quality Scanner button in the toolbar."
+
+  → Click the extension toolbar button
+  → Extension panel opens: datasource auto-detected, 8 checks listed
+  → All checks selected by default
+
+"Just like hitting Cmd+Shift+P in Cursor to run a linter — one action,
+full coverage. I hit Start Scan."
+
+  → Click Start Scan
+  → Results appear incrementally as each check completes
+
+
+STEP 3: THE RESULTS (60 seconds)
+"5 out of 8 checks passed. Score: 62%. Let's look at what failed."
+
+  FAILED: Completeness
+  "Two records have missing values. Row 42 is missing a parent name,
+  row 8817 is missing a district. In 10,000 rows, that's easy to miss.
+  But now I see the exact rows."
+
+  → Expand the failing records table
+  → Point out the row numbers and null values
+
+  FAILED: Value Consistency
+  "The scanner detected two typos using edit-distance analysis.
+  'Lincolm Elementary' is one character away from 'Lincoln Elementary'.
+  'Kenndy High' is one character from 'Kennedy High'.
+  These would have become separate categories in every chart."
+
+  → Show the typo pairs and affected rows
+
+  FAILED: Type Consistency
+  "Row 3001 has 'five' where a number should be. Row 6500 has 'N/A'
+  in the facility rating. Two strings hiding in numeric columns.
+  Tableau would silently treat the whole column as strings."
+
+  → Show the mixed-type records
+
+  PASSED: Duplicates, Outliers, Pattern Conformity, Negative Values, Unique Key
+  "The other five checks passed — no duplicates, no outliers outside
+  IQR bounds, all dates in consistent format, no unexpected negatives,
+  and all response IDs are unique."
+
+
+STEP 4: THE RUN LOG (30 seconds)
+"Every scan generates a CSV log with timestamps. I can download it,
+connect to it as a data source, and track quality over time —
+like a CI/CD pipeline for data."
+
+  → Click "Download Run Log (CSV)"
+  → Show the downloaded file briefly
+
+
+STEP 5: THE CLEAN VERSION (30 seconds)
+"Now let me connect the cleaned version of the same dataset."
+
+  → Switch to survey_post_test.csv
+  → Run scan again
+  → All 8 checks pass. Score: 100%.
+
+"Same 10,000 rows, same 15 columns — but the 6 problem records
+have been fixed. That's the workflow: scan, fix, re-scan, ship."
+
+
+CLOSING (30 seconds)
+--------------------
+"This is one extension. Imagine an ecosystem:
+
+  - A data profiler that auto-documents your datasource
+  - A bookmark manager that saves filter/parameter combos
+  - A cross-sheet reconciler that checks your totals add up
+  - An annotation engine that writes insights on your marks
+
+Workspace extensions turn Tableau into a platform — the same way
+extensions turned VS Code into the tool every developer actually uses.
+
+The authoring surface is Tableau's. The intelligence layer is yours."
+
+
+TECHNICAL TALKING POINTS (if asked)
+------------------------------------
+
+Q: "How does the extension access the data?"
+A: "The Extensions API gives us getLogicalTableDataReaderAsync — it reads
+   the full underlying datasource in 10K-row pages, not just what's on
+   the viz. Up to a million rows. We load it all into memory and run
+   the checks in parallel."
+
+Q: "Can it modify the data or create sheets?"
+A: "No — and that's by design. Like a linter, it's read-only for data.
+   It can read, analyze, and report. The only write operations are
+   mark annotations and filter/parameter changes. The extension can't
+   alter your workbook structure."
+
+Q: "What's the tech stack?"
+A: "TypeScript, React, Vite. Zero runtime dependencies beyond React.
+   The check engine is pure TypeScript with no Tableau dependency —
+   fully unit-testable. The Tableau API glue is a thin layer on top.
+   Same architecture as building a Cursor extension: pure logic core,
+   thin host adapter, React UI."
+
+Q: "How do you deploy it?"
+A: "Package as a .tpkg file (just a zip with a manifest), upload to
+   Tableau Server. Admins can enable/disable per site. Users get a
+   toolbar button automatically — no install step."
+
+Q: "Where do the check rules come from?"
+A: "Inspired by AWS Deequ — an open-source data quality framework.
+   We reimplemented the most common checks in TypeScript: completeness,
+   uniqueness, type consistency, IQR outliers, Levenshtein typo detection,
+   regex pattern conformity, sign validation, and key uniqueness.
+   All auto-detect which columns to run on. No configuration needed."
