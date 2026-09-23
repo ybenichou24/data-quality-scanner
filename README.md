@@ -1,6 +1,6 @@
 ## Disclaimer — read before using
 
-AInnotation is an unofficial, unsupported code sample published for educational and illustrative purposes only.
+Data Quality Scanner is an unofficial, unsupported code sample published for educational and illustrative purposes only.
 
 - It is **not** an official Tableau or Salesforce product, and is not affiliated with, endorsed by, sponsored by, or supported by Tableau Software, LLC or Salesforce, Inc. "Tableau" and related marks are the property of their respective owners.
 - It is provided **"AS IS"**, without warranty of any kind, express or implied, and is not intended for production use. See the LICENSE (Apache-2.0) for the full warranty disclaimer and limitation of liability.
