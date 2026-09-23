@@ -1,3 +1,14 @@
+## Disclaimer — read before using
+
+AInnotation is an unofficial, unsupported code sample published for educational and illustrative purposes only.
+
+- It is **not** an official Tableau or Salesforce product, and is not affiliated with, endorsed by, sponsored by, or supported by Tableau Software, LLC or Salesforce, Inc. "Tableau" and related marks are the property of their respective owners.
+- It is provided **"AS IS"**, without warranty of any kind, express or implied, and is not intended for production use. See the LICENSE (Apache-2.0) for the full warranty disclaimer and limitation of liability.
+- It is an example for learning how a Tableau Workspace Extension can analyze worksheet data and apply annotations. It may rely on behavior that is undocumented or subject to change, and it may stop working without notice.
+- **No support is offered.** There is no SLA, no maintenance commitment, and no guarantee of correctness, security, or fitness for any purpose. Use it, and any ideas drawn from it, entirely at your own risk.
+
+---
+
 # Data Quality Scanner — Workspace Extension
 
 A Tableau Desktop **Workspace Extension** that scans your connected datasource
