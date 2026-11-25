@@ -1,8 +1,9 @@
 interface TableauExtensions {
   initializeAsync(): Promise<void>;
-  workspaceContent: {
-    workbook: {
+  workspaceContent?: {
+    workbook?: {
       activeSheet: TableauSheet;
+      getAllDataSourcesAsync?(): Promise<TableauDataSource[]>;
       addEventListener(event: string, handler: () => void): void;
     };
     addEventListener(event: string, handler: () => void): void;

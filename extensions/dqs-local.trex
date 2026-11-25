@@ -10,15 +10,37 @@
       pattern conformity, negative values, and unique key validation.</description>
     <author name="DQS" email="dqs@example.com" organization="DQS"
             website="https://example.com"/>
-    <min-api-version>1.11</min-api-version>
+    <min-api-version>1.1</min-api-version>
     <source-location>
       <url>http://localhost:8780</url>
     </source-location>
-    <icon></icon>
     <permissions>
       <permission>full data</permission>
     </permissions>
+
+    <entry-points>
+      <authoring-toolbar region="primary">
+        <label resource-id="name"/>
+        <icon>
+          <svg xmlns="http://www.w3.org/2000/svg"
+               viewBox="0 0 24 24" fill="#4E79A7">
+            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4
+              8.36 4 5.33 6.59 4.65 10.04 2.16 10.36 0 12.47
+              0 15c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24
+              5-5 0-2.53-2.16-4.64-4.65-4.96zM10 17l-3.5-3.5
+              1.41-1.41L10 14.17l4.59-4.58L16 11l-6 6z"/>
+          </svg>
+        </icon>
+        <on-click><side-pane/></on-click>
+      </authoring-toolbar>
+
+      <authoring-menu>
+        <label resource-id="name"/>
+        <on-click><side-pane/></on-click>
+      </authoring-menu>
+    </entry-points>
   </workspace-extension>
+
   <resources>
     <resource id="name">
       <text locale="en_US">Data Quality Scanner</text>

@@ -3,7 +3,7 @@ import type { LoadedTable } from '../engine/types';
 import type { DiscoveredDatasource } from '../tableau/datasource';
 import { ALL_CHECKS } from '../engine/checks';
 import { getMode } from '../tableau/extensions';
-import { discoverDatasources, loadTable } from '../tableau/datasource';
+import { discoverDatasources, loadTable, debugLog } from '../tableau/datasource';
 import { PREVIEW_DATASETS } from '../preview/sampleData';
 
 interface Props {
@@ -20,6 +20,7 @@ export function ScanScreen({ onScanStart }: Props) {
   const [loading, setLoading] = useState(false);
   const [previewIdx, setPreviewIdx] = useState(0);
   const [detecting, setDetecting] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
 
   const refreshDatasources = useCallback(async () => {
     if (getMode() === 'preview') return;
@@ -32,18 +33,19 @@ export function ScanScreen({ onScanStart }: Props) {
         setSelectedTable(ds[0].tables[0].id);
       }
     }
+    setDebugInfo([...debugLog]);
     setDetecting(false);
   }, []);
 
   useEffect(() => {
     refreshDatasources();
 
-    // Re-discover when the active sheet changes
     if (getMode() !== 'preview') {
       try {
-        const wb = window.tableau?.extensions?.workspaceContent;
-        if (wb) {
-          wb.addEventListener('active-sheet-changed', refreshDatasources);
+        const wc = window.tableau?.extensions?.workspaceContent;
+        if (wc) {
+          wc.addEventListener('workbook-changed', refreshDatasources);
+          wc.addEventListener('active-sheet-changed', refreshDatasources);
         }
       } catch (_) { /* event may not be supported */ }
     }
